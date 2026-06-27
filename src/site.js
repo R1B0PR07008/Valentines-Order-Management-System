@@ -9,13 +9,7 @@ import {
 
 // ================= CONFIG =================
 const firebaseConfig = {
-  apiKey: "AIzaSyDrLuZwJ_GZieK1vAA_KGQlY1DRe4Z2BRQ",
-  authDomain: "sgasaintvalentines.firebaseapp.com",
-  databaseURL: "https://sgasaintvalentines-default-rtdb.firebaseio.com",
-  projectId: "sgasaintvalentines",
-  storageBucket: "sgasaintvalentines.firebasestorage.app",
-  messagingSenderId: "521888807329",
-  appId: "1:521888807329:web:66dd6faca9c0e8c28273e0"
+  // Firebase configuration
 };
 
 const app = initializeApp(firebaseConfig);
