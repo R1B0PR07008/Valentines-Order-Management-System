@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+<style>
+body{
+  font-family: Montserrat, sans-serif;
+  background:#f7f7f7;
+  padding:30px;
+}
+
+h1{
+  color:#8B2E4A;
+  margin-bottom:10px;
+  position:relative;
+  padding-bottom:50px;
+}
+
+.header-buttons{
+  position:absolute;
+  top:0;
+  right:0;
+  display:flex;
+  gap:10px;
+}
+
+@media (max-width: 768px){
+  h1{
+    padding-bottom:10px;
+  }
+  
+  .header-buttons{
+    position:static;
+    margin-top:15px;
+    width:100%;
+    justify-content:flex-end;
+  }
+  
+  #downloadExcelBtn, #logoutBtn{
+    float:none !important;
+    padding:6px 10px;
+    font-size:14px;
+  }
+}
+
+@media (max-width: 480px){
+  .header-buttons{
+    flex-direction:column;
+    gap:8px;
+  }
+  
+  #downloadExcelBtn, #logoutBtn{
+    width:100%;
+    max-width:200px;
+  }
+}
+
+.controls{
+  display:flex;
+  gap:15px;
+  margin-bottom:20px;
+}
+input,select{
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+.card{
+  background:white;
+  padding:20px;
+  border-radius:14px;
+  box-shadow:0 5px 15px rgba(0,0,0,.05);
+  margin-bottom:20px;
+}
+.school{
+  font-size:1.4em;
+  color:#8B2E4A;
+  margin-bottom:10px;
+}
+.order{
+  border-top:1px solid #eee;
+  padding-top:12px;
+  margin-top:12px;
+}
+.badge{
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:.8em;
+  font-weight:600;
+}
+.paid{background:#C8F7C5;color:#1E7F3B}
+.pending{background:#FFD6D6;color:#9B1C1C}
+
+.payBadge{
+  background:#E8E8FF;
+  color:#333;
+  margin-left:6px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;  
+}
+
+.anonBadge{
+  margin-left:10px;
+  padding:3px;
+  border-radius: 5px;
+  font-weight:700;
+  font-size:.85em;
+  letter-spacing:.3px;
+
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+
+.anonYES{
+  background:#FF4D6D;
+  color:white;
+  box-shadow:0 0 10px rgba(255,77,109,.35);
+}
+
+.anonNO{
+  background:#EAEAEA;
+  color:#444;
+}
+
+.amount{
+  display:inline-block;
+  background:#FFF0F5;
+  color:#8B2E4A;
+  padding:6px 12px;
+  border-radius:8px;
+  font-weight:700;
+  font-size:1.1em;
+  margin-top:10px;
+  border:2px solid #FFE4E9;
+}
+
+button{
+  margin-top:8px;
+  padding:8px 12px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+.toggle-paid{background:#4CAF50;color:white}
+.toggle-unpaid{background:#FF6B6B;color:white}
+ul{margin-left:20px}
+small{color:#666}
+
+#logoutBtn{
+  background:#FF6B6B;
+  color:white;
+  border:none;
+  padding:8px 14px;
+  border-radius:8px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+#downloadExcelBtn{
+  background:#4CAF50;
+  color:white;
+  border:none;
+  padding:8px 14px;
+  border-radius:8px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+#downloadExcelBtn:hover{
+  background:#45a049;
+}
+
+#logoutBtn:hover{
+  background:#ff5252;
+}
+
+.stats-container{
+  display:flex;
+  gap:15px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
+
+.stat-card{
+  background:white;
+  padding:15px 20px;
+  border-radius:12px;
+  box-shadow:0 3px 10px rgba(0,0,0,.08);
+  text-align:center;
+  min-width:150px;
+}
+
+.stat-card.total{
+  background:linear-gradient(135deg,#8B2E4A,#D4A5A5);
+  color:white;
+  flex:1;
+}
+
+.stat-number{
+  font-size:2em;
+  font-weight:700;
+  margin-bottom:5px;
+}
+
+.stat-label{
+  font-size:.9em;
+  opacity:0.85;
+}
+
+.stat-card.total .stat-label{
+  opacity:1;
+}
+
+.charts-container{
+  display:grid;
+  grid-template-columns:1fr 2fr;
+  gap:20px;
+  margin-bottom:20px;
+}
+
+.chart-card{
+  background:white;
+  padding:20px;
+  border-radius:14px;
+  box-shadow:0 5px 15px rgba(0,0,0,.05);
+  max-height:400px;
+}
+
+.chart-card canvas{
+  max-height:300px;
+}
+
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));
+  gap:12px;
+}
+
+.mini-stat-card{
+  background:white;
+  padding:15px;
+  border-radius:12px;
+  box-shadow:0 3px 10px rgba(0,0,0,.08);
+  text-align:center;
+}
+
+.mini-stat-number{
+  font-size:1.8em;
+  font-weight:700;
+  color:#8B2E4A;
+  margin-bottom:5px;
+}
+
+.mini-stat-label{
+  font-size:.85em;
+  color:#666;
+}
+
+.chart-title{
+  color:#8B2E4A;
+  font-size:1.2em;
+  font-weight:600;
+  margin-bottom:15px;
+  text-align:center;
+}
+
+@media (max-width: 768px){
+  .charts-container{
+    grid-template-columns:1fr;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>
+  📊 Valentine Orders — Admin
+  <div class="header-buttons">
+    <button id="downloadExcelBtn">📥 Download Excel</button>
+    <button id="logoutBtn">Log out</button>
+  </div>
+</h1>
+
+<!-- Stats Section -->
+<div id="statsContainer" class="stats-container"></div>
+
+<!-- Charts Section -->
+<div class="charts-container">
+  <div class="chart-card">
+    <div class="chart-title">📊 Gifts Distribution</div>
+    <canvas id="giftsChart"></canvas>
+  </div>
+  <div>
+    <div class="chart-title">🎁 Gift Counters</div>
+    <div id="giftCounters" class="stats-grid"></div>
+  </div>
+</div>
+
+<div class="controls">
+  <select id="schoolFilter">
+    <option value="all">All schools</option>
+  </select>
+
+  <input id="orderSearch" placeholder="Search Order ID..." />
+</div>
+
+<div id="dashboard"></div>
+
+<script type="module">
+/* ===== SIMPLE AUTH GUARD ===== */
+if (localStorage.getItem("ADMIN_AUTH") !== "true") {
+  location.href = "login.html";
+}
+
+document.getElementById("logoutBtn").onclick = () => {
+  localStorage.removeItem("ADMIN_AUTH");
+  location.reload();
+};
+
+/* ===== FIREBASE ===== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onValue, update } from
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
+// Firebase configuration
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* ===== PRICES ===== */
+const prices = {
+  roses: 37,
+  teddy: 90,
+  paletas: 16,
+  serenata: 32,
+  filipitos: 50,
+  brownies: 24,
+  galletas: 26,
+  globos: 37,
+  kiss_chocolate: 19,
+};
+
+/* ===== UI ===== */
+const dashboard = document.getElementById("dashboard");
+const statsContainer = document.getElementById("statsContainer");
+const schoolFilter = document.getElementById("schoolFilter");
+const orderSearch = document.getElementById("orderSearch");
+
+let grouped = {};
+let stats = {
+  totalOrders: 0,
+  totalRevenue: 0,
+  paidOrders: 0,
+  paidRevenue: 0,
+  gifts: {}
+};
+
+/* ===== PAYMENT LABEL HELPER ===== */
+function formatPayment(method){
+  if(method === "cash") return "💵 Cash (Pay at school)";
+  if(method === "CLIP_transfer") return "💳 CLIP Transfer";
+  if(method === "card") return "💳 Card (Pay at school)";
+  return method || "—";
+}
+
+/* ===== CALCULATE ORDER TOTAL ===== */
+function calculateTotal(gifts){
+  let total = 0;
+  gifts.forEach(g => {
+    if(prices[g.gift]){
+      total += prices[g.gift];
+    }
+  });
+  return total;
+}
+
+/* ===== CALCULATE STATS ===== */
+function calculateStats(){
+  stats = {
+    totalOrders: 0,
+    totalRevenue: 0,
+    paidOrders: 0,
+    paidRevenue: 0,
+    gifts: {},
+    paidGifts: {}
+  };
+  
+  // Initialize all gift types to 0
+  Object.keys(prices).forEach(giftType => {
+    stats.gifts[giftType] = 0;
+    stats.paidGifts[giftType] = 0;
+  });
+  
+  // Track unique order IDs and their totals to avoid double-counting
+  const processedOrders = new Map(); // orderID -> {total, status}
+  
+  // First pass: process each order only once
+  Object.values(grouped).forEach(school => {
+    Object.entries(school).forEach(([orderID, order]) => {
+      // Only process each order once (might appear in multiple schools)
+      if(!processedOrders.has(orderID)){
+        const orderTotal = calculateTotal(order.gifts);
+        processedOrders.set(orderID, {
+          total: orderTotal,
+          status: order.status
+        });
+      }
+      
+      // Count ALL individual gifts
+      order.gifts.forEach(gift => {
+        if(gift.gift && stats.gifts[gift.gift] !== undefined){
+          stats.gifts[gift.gift]++;
+        }
+      });
+      
+      // Count PAID gifts separately
+      if(order.status === 'paid'){
+        order.gifts.forEach(gift => {
+          if(gift.gift && stats.paidGifts[gift.gift] !== undefined){
+            stats.paidGifts[gift.gift]++;
+          }
+        });
+      }
+    });
+  });
+  
+  // Second pass: calculate totals from unique orders
+  let totalOrderCount = 0;
+  let totalRevenue = 0;
+  let paidOrderCount = 0;
+  let paidRevenue = 0;
+  
+  processedOrders.forEach((orderData, orderID) => {
+    totalOrderCount++;
+    totalRevenue += orderData.total;
+    
+    if(orderData.status === 'paid'){
+      paidOrderCount++;
+      paidRevenue += orderData.total;
+    }
+  });
+  
+  stats.totalOrders = totalOrderCount;
+  stats.totalRevenue = totalRevenue;
+  stats.paidOrders = paidOrderCount;
+  stats.paidRevenue = paidRevenue;
+}
+
+/* ===== RENDER STATS ===== */
+function renderStats(){
+  calculateStats();
+  
+  const giftLabels = {
+    roses: '🌹 Roses',
+    teddy: '🧸 Teddy',
+    paletas: '🍭 Paletas',
+    serenata: '🎶 Serenata',
+    filipitos: '🍫 Brigadeiros',
+    brownies: '🍪 Brownies',
+    galletas: '🍪 Galletas',
+    globos: '🎈 Globos',
+    kiss_chocolate: '🍫 Chocolate Kiss'
+  };
+  
+  // Show all 4 stats at the top
+  let html = `
+    <div class="stat-card total">
+      <div class="stat-number">${stats.totalOrders}</div>
+      <div class="stat-label">Total Orders</div>
+    </div>
+    
+    <div class="stat-card total">
+      <div class="stat-number">$${stats.totalRevenue.toFixed(2)}</div>
+      <div class="stat-label">Total Revenue</div>
+    </div>
+    
+    <div class="stat-card total">
+      <div class="stat-number">${stats.paidOrders}</div>
+      <div class="stat-label">Orders Paid</div>
+    </div>
+    
+    <div class="stat-card total">
+      <div class="stat-number">$${stats.paidRevenue.toFixed(2)}</div>
+      <div class="stat-label">Total Paid</div>
+    </div>
+  `;
+  
+  statsContainer.innerHTML = html;
+  
+  // Render charts (pie chart + gift counters)
+  renderCharts(giftLabels);
+}
+
+/* ===== RENDER CHARTS ===== */
+let giftsChart = null;
+
+function renderCharts(giftLabels){
+  // Destroy existing chart if it exists
+  if(giftsChart) giftsChart.destroy();
+  
+  // Prepare gifts data (only non-zero values) - use ALL gifts for chart
+  const giftsData = Object.entries(stats.gifts)
+    .filter(([_, count]) => count > 0)
+    .sort((a, b) => b[1] - a[1]);
+  
+  const giftNames = giftsData.map(([type, _]) => giftLabels[type] || type);
+  const giftCounts = giftsData.map(([_, count]) => count);
+  
+  // Color palette - Valentine's theme
+  const colors = [
+    '#8B2E4A', '#D4A5A5', '#FF6B6B', '#FFE4E9',
+    '#FFC0CB', '#FF1493', '#C71585', '#FF69B4', '#FFB6C1'
+  ];
+  
+  // Gifts Pie Chart
+  const giftsCtx = document.getElementById('giftsChart').getContext('2d');
+  giftsChart = new Chart(giftsCtx, {
+    type: 'doughnut',
+    data: {
+      labels: giftNames,
+      datasets: [{
+        data: giftCounts,
+        backgroundColor: colors,
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            padding: 10,
+            font: {
+              size: 11,
+              family: 'Montserrat'
+            }
+          }
+        }
+      }
+    }
+  });
+  
+  // Render gift counters - show both total and paid
+  const countersContainer = document.getElementById('giftCounters');
+  let countersHtml = '';
+  
+  giftsData.forEach(([giftType, totalCount]) => {
+    const paidCount = stats.paidGifts[giftType] || 0;
+    countersHtml += `
+      <div class="mini-stat-card">
+        <div class="mini-stat-number">${totalCount}</div>
+        <div class="mini-stat-label">${giftLabels[giftType] || giftType}</div>
+        <div style="font-size:0.75em; color:#4CAF50; margin-top:4px; font-weight:600;">
+          ✓ ${paidCount} paid
+        </div>
+      </div>
+    `;
+  });
+  
+  countersContainer.innerHTML = countersHtml;
+}
+
+/* ===== LOAD ORDERS ===== */
+onValue(ref(db,"orders"), snap=>{
+  grouped = {};
+  const schools = new Set();
+
+  snap.forEach(child=>{
+    const order = child.val();
+    const key = child.key;
+
+    order.gifts.forEach(g=>{
+      schools.add(g.school);
+
+      grouped[g.school] ??= {};
+      grouped[g.school][order.orderID] ??= {
+        key,
+        sender: order.buyerName,
+        email: order.buyerEmail,
+
+        anonymous: order.anonymous || "NO",
+
+        paymentMethod: order.paymentMethod || "—",
+        status: order.status || "pending",
+        createdAt: order.createdAt,
+        gifts:[]
+      };
+
+      grouped[g.school][order.orderID].gifts.push({
+        recipient: g.recipientName,
+        grade: g.grade,
+        gift: g.giftType
+      });
+    });
+  });
+
+  schoolFilter.innerHTML = `<option value="all">All schools</option>`;
+  [...schools].sort().forEach(s=>{
+    schoolFilter.innerHTML += `<option>${s}</option>`;
+  });
+
+  renderStats();
+  render();
+});
+
+schoolFilter.onchange = orderSearch.oninput = render;
+
+/* ===== RENDER DASHBOARD ===== */
+function render(){
+  dashboard.innerHTML="";
+  const schoolSel = schoolFilter.value;
+  const search = orderSearch.value.toUpperCase();
+
+  Object.entries(grouped).forEach(([school,orders])=>{
+    if(schoolSel!=="all" && schoolSel!==school) return;
+
+    const card = document.createElement("div");
+    card.className="card";
+    card.innerHTML = `<div class="school">${school}</div>`;
+
+    Object.entries(orders).forEach(([orderID,o])=>{
+      if(search && !orderID.includes(search)) return;
+
+      const badgeClass = o.status==="paid"?"paid":"pending";
+      const anonClass = o.anonymous === "YES" ? "anonYES" : "anonNO";
+      const total = calculateTotal(o.gifts);
+
+      card.innerHTML += `
+        <div class="order">
+          <strong>Order ID:</strong> ${orderID}
+
+          <span class="badge ${badgeClass}">
+            ${o.status.toUpperCase()}
+          </span>
+
+          <span class="badge payBadge">
+            ${formatPayment(o.paymentMethod)}
+          </span>
+
+          <span class="anonBadge ${anonClass}">
+            ${o.anonymous === "YES" ? "🙈 ANONYMOUS" : "👤 NOT ANON"}
+          </span>
+
+          <br><br>
+
+          <small>
+            Sender: ${o.sender} (${o.email})<br>
+            Placed: ${new Date(o.createdAt).toLocaleString()}
+          </small>
+
+          <ul>
+            ${o.gifts.map(g=>`
+              <li>
+                ${g.recipient} — Grade ${g.grade}
+                (<strong>${g.gift}</strong>)
+              </li>
+            `).join("")}
+          </ul>
+
+          <div class="amount">💰 Amount to pay: $${total.toFixed(2)}</div>
+
+          <br>
+
+          <button
+            class="${o.status==="paid"?"toggle-unpaid":"toggle-paid"}"
+            onclick="toggleStatus('${o.key}','${o.status}')">
+            Mark ${o.status==="paid"?"UNPAID":"PAID"}
+          </button>
+        </div>
+      `;
+    });
+
+    dashboard.appendChild(card);
+  });
+}
+
+/* ===== TOGGLE PAYMENT STATUS ===== */
+window.toggleStatus = (key,current)=>{
+  const newStatus = current==="paid"?"pending":"paid";
+  update(ref(db,`orders/${key}`),{status:newStatus});
+};
+
+/* ===== DOWNLOAD EXCEL ===== */
+document.getElementById("downloadExcelBtn").onclick = () => {
+  console.log("Download button clicked");
+  
+  if(Object.keys(grouped).length === 0){
+    alert("No data to export yet. Please wait for orders to load.");
+    return;
+  }
+  
+  try {
+    console.log("Creating workbook...");
+    const workbook = XLSX.utils.book_new();
+    
+    // Gift type labels
+    const giftLabels = {
+      roses: '🌹 Roses',
+      teddy: '🧸 Teddy',
+      paletas: '🍭 Paletas',
+      serenata: '🎶 Serenata',
+      filipitos: '🍫 Brigadeiros',
+      brownies: '🍪 Brownies',
+      galletas: '🍪 Galletas',
+      globos: '🎈 Globos',
+      kiss_chocolate: '🍫 Chocolate Kiss'
+    };
+    
+    // Helper function to normalize grade
+    function normalizeGrade(gradeRaw){
+      if(!gradeRaw) return 'Unknown';
+      
+      const gradeStr = String(gradeRaw).toLowerCase().trim();
+      
+      // Check for secundaria/preparatoria patterns
+      if(gradeStr.includes('secundaria')){
+        const match = gradeStr.match(/(\d+)/);
+        if(match){
+          return `Secundaria ${match[1]}`;
+        }
+        return 'Secundaria';
+      }
+      
+      if(gradeStr.includes('preparatoria') || gradeStr.includes('prepa')){
+        const match = gradeStr.match(/(\d+)/);
+        if(match){
+          return `Preparatoria ${match[1]}`;
+        }
+        return 'Preparatoria';
+      }
+      
+      // Check for section format like 704, 805, 901, etc.
+      const sectionMatch = gradeStr.match(/^(\d{3,4})$/);
+      if(sectionMatch){
+        const fullNum = sectionMatch[1];
+        if(fullNum.length === 3){
+          return fullNum[0];
+        } else if(fullNum.length === 4 && fullNum.startsWith('10')){
+          return '10';
+        } else if(fullNum.length === 4 && fullNum.startsWith('11')){
+          return '11';
+        } else if(fullNum.length === 4 && fullNum.startsWith('12')){
+          return '12';
+        }
+      }
+      
+      // Extract number for standard grades
+      const match = gradeStr.match(/(\d{1,2})/);
+      if(!match) return 'Unknown';
+      
+      const gradeNum = parseInt(match[1]);
+      
+      if(gradeNum >= 1 && gradeNum <= 12){
+        return String(gradeNum);
+      }
+      
+      return 'Unknown';
+    }
+    
+    // Helper function to count gifts by type
+    function countGifts(data){
+      const counts = {};
+      data.forEach(row => {
+        const giftType = row.Gift || row.gift || '';
+        if(giftType){
+          counts[giftType] = (counts[giftType] || 0) + 1;
+        }
+      });
+      return counts;
+    }
+    
+    console.log("Counting total paid gifts...");
+    
+    // Track total gift counts for PAID orders
+    const totalGiftCounts = {};
+    Object.keys(prices).forEach(giftType => {
+      totalGiftCounts[giftType] = 0;
+    });
+    
+    // Count all paid gifts
+    Object.entries(grouped).forEach(([school, orders]) => {
+      Object.values(orders).forEach(order => {
+        if(order.status === 'paid'){
+          order.gifts.forEach(gift => {
+            if(gift.gift && totalGiftCounts[gift.gift] !== undefined){
+              totalGiftCounts[gift.gift]++;
+            }
+          });
+        }
+      });
+    });
+    
+    console.log("Total gift counts:", totalGiftCounts);
+    
+    // Create TOTAL SUMMARY sheet for PAID orders
+    const summaryData = [
+      {'Gift Type': '=== TOTAL PAID GIFTS SUMMARY ===', 'Quantity': ''},
+      {'Gift Type': '', 'Quantity': ''}
+    ];
+    
+    Object.entries(totalGiftCounts)
+      .filter(([_, count]) => count > 0)
+      .sort((a, b) => b[1] - a[1])
+      .forEach(([giftType, count]) => {
+        summaryData.push({
+          'Gift Type': giftLabels[giftType] || giftType,
+          'Quantity': count
+        });
+      });
+    
+    console.log("Creating summary sheet...");
+    const summarySheet = XLSX.utils.json_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(workbook, summarySheet, 'TOTAL PAID GIFTS');
+    
+    console.log("Processing schools...");
+    
+    // Process PAID orders by school
+    Object.entries(grouped).forEach(([school, orders]) => {
+      console.log(`Processing school: ${school}`);
+      
+      if(school === 'Eton'){
+        // Group Eton by grade
+        const gradeGroups = {};
+        
+        Object.values(orders).forEach(order => {
+          if(order.status !== 'paid') return;
+          
+          order.gifts.forEach(gift => {
+            const normalizedGrade = normalizeGrade(gift.grade);
+            
+            if(!gradeGroups[normalizedGrade]){
+              gradeGroups[normalizedGrade] = [];
+            }
+            
+            gradeGroups[normalizedGrade].push({
+              'Gift': giftLabels[gift.gift] || gift.gift,
+              'Recipient Name': gift.recipient,
+              'Grade': gift.grade,
+              'Anonymous': order.anonymous,
+              'Sender Name': order.anonymous === 'YES' ? '' : order.sender,
+              'Payment Status': order.status.toUpperCase(),
+              'Order ID': Object.keys(grouped[school]).find(id => grouped[school][id] === order) || '',
+              'gift': gift.gift
+            });
+          });
+        });
+        
+        // Create sheet for each grade
+        Object.entries(gradeGroups)
+          .filter(([_, data]) => data.length > 0)
+          .sort((a, b) => {
+            const aNum = parseInt(a[0]);
+            const bNum = parseInt(b[0]);
+            return aNum - bNum;
+          })
+          .forEach(([grade, data]) => {
+            console.log(`  Creating sheet for grade ${grade}`);
+            
+            const giftCounts = countGifts(data);
+            
+            const summaryRows = [
+              {'Gift': '=== GIFT SUMMARY ===', 'Recipient Name': '', 'Grade': '', 'Anonymous': '', 'Sender Name': '', 'Payment Status': '', 'Order ID': ''}
+            ];
+            
+            Object.entries(giftCounts).forEach(([giftType, count]) => {
+              summaryRows.push({
+                'Gift': giftLabels[giftType] || giftType,
+                'Recipient Name': `${count} gift(s)`,
+                'Grade': '', 'Anonymous': '', 'Sender Name': '', 'Payment Status': '', 'Order ID': ''
+              });
+            });
+            
+            summaryRows.push({'Gift': '', 'Recipient Name': '', 'Grade': '', 'Anonymous': '', 'Sender Name': '', 'Payment Status': '', 'Order ID': ''});
+            summaryRows.push({'Gift': '=== ORDERS ===', 'Recipient Name': '', 'Grade': '', 'Anonymous': '', 'Sender Name': '', 'Payment Status': '', 'Order ID': ''});
+            
+            const cleanData = data.map(({gift, ...rest}) => rest);
+            const sheetData = [...summaryRows, ...cleanData];
+            
+            const worksheet = XLSX.utils.json_to_sheet(sheetData);
+            const sheetName = `Eton - Grade ${grade}`;
+            XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+          });
+      } else {
+        // Non-Eton schools
+        const data = [];
+        
+        Object.values(orders).forEach(order => {
+          if(order.status !== 'paid') return;
+          
+          order.gifts.forEach(gift => {
+            data.push({
+              'Gift': giftLabels[gift.gift] || gift.gift,
+              'Recipient Name': gift.recipient,
+              'Grade': gift.grade,
+              'Anonymous': order.anonymous,
+              'Sender Name': order.anonymous === 'YES' ? '' : order.sender,
+              'Payment Status': order.status.toUpperCase(),
+              'Order ID': Object.keys(grouped[school]).find(id => grouped[school][id] === order) || '',
+              'gift': gift.gift
+            });
+          });
+        });
+        
+        if(data.length === 0) return;
+        
+        const giftCounts = countGifts(data);
+        
+        const summaryRows = [
+          {'Gift': '=== GIFT SUMMARY ===', 'Recipient Name': '', 'Grade': '', 'Anonymous': '', 'Sender Name': '', 'Payment Status': '', 'Order ID': ''}
+        ];
+        
+        Object.entries(giftCounts).forEach(([giftType, count]) => {
+          summaryRows.push({
+            'Gift': giftLabels[giftType] || giftType,
+            'Recipient Name': `${count} gift(s)`,
+            'Grade': '', 'Anonymous': '', 'Sender Name': '', 'Payment Status': '', 'Order ID': ''
+          });
+        });
+        
+        summaryRows.push({'Gift': '', 'Recipient Name': '', 'Grade': '', 'Anonymous': '', 'Sender Name': '', 'Payment Status': '', 'Order ID': ''});
+        summaryRows.push({'Gift': '=== ORDERS ===', 'Recipient Name': '', 'Grade': '', 'Anonymous': '', 'Sender Name': '', 'Payment Status': '', 'Order ID': ''});
+        
+        const cleanData = data.map(({gift, ...rest}) => rest);
+        const sheetData = [...summaryRows, ...cleanData];
+        
+        const worksheet = XLSX.utils.json_to_sheet(sheetData);
+        XLSX.utils.book_append_sheet(workbook, worksheet, school);
+      }
+    });
+    
+    console.log("Creating unpaid orders sheet...");
+    
+    // Create UNPAID ORDERS sheet
+    const unpaidData = [];
+    
+    Object.entries(grouped).forEach(([school, orders]) => {
+      Object.entries(orders).forEach(([orderID, order]) => {
+        if(order.status !== 'pending') return;
+        
+        order.gifts.forEach(gift => {
+          unpaidData.push({
+            'School': school,
+            'Gift': giftLabels[gift.gift] || gift.gift,
+            'Recipient Name': gift.recipient,
+            'Grade': gift.grade,
+            'Anonymous': order.anonymous,
+            'Sender Name': order.anonymous === 'YES' ? '' : order.sender,
+            'Sender Email': order.email,
+            'Payment Method': order.paymentMethod || '—',
+            'Order ID': orderID
+          });
+        });
+      });
+    });
+    
+    if(unpaidData.length > 0){
+      const unpaidSheet = XLSX.utils.json_to_sheet(unpaidData);
+      XLSX.utils.book_append_sheet(workbook, unpaidSheet, 'UNPAID ORDERS');
+    }
+    
+    console.log("Generating file...");
+    
+    // Generate filename and download
+    const date = new Date().toISOString().split('T')[0];
+    const filename = `valentines_orders_${date}.xlsx`;
+    
+    console.log("Writing file:", filename);
+    XLSX.writeFile(workbook, filename);
+    
+    console.log("File written successfully!");
+    alert(`✅ Excel file downloaded: ${filename}`);
+    
+  } catch(error) {
+    console.error("Error creating Excel:", error);
+    alert(`❌ Error creating Excel file: ${error.message}`);
+  }
+};
+</script>
+
+</body>
+</html>

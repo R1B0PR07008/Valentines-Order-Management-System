@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valentine's Day Gift Orders</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Montserrat',sans-serif;
+  background:linear-gradient(135deg,#FFF0F5,#FFE4E9);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+.container{
+  background:white;
+  border-radius:20px;
+  box-shadow:0 10px 40px rgba(139,46,74,.1);
+  max-width:650px;
+  width:100%;
+  padding:40px;
+}
+h1{
+  font-family:'Playfair Display',serif;
+  color:#8B2E4A;
+  text-align:center;
+  font-size:2.5em;
+}
+.subtitle{text-align:center;color:#666;margin-bottom:30px}
+form{display:flex;flex-direction:column;gap:20px}
+label{font-weight:600}
+input,select{
+  padding:12px 15px;
+  border-radius:10px;
+  border:2px solid #FFE4E9;
+  background:#FFFEF7;
+  font-size:16px;
+}
+input:focus,select:focus{
+  outline:none;
+  border-color:#D4A5A5;
+  background:white;
+}
+.price-display{
+  background:#FFF0F5;
+  padding:15px;
+  border-radius:10px;
+  text-align:center;
+  font-size:1.4em;
+  font-weight:bold;
+  color:#8B2E4A;
+  display:none;
+}
+button{
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  font-weight:600;
+  cursor:pointer;
+}
+.submit-btn{
+  background:linear-gradient(135deg,#8B2E4A,#D4A5A5);
+  color:white;
+}
+.add-btn{background:#FFE4E9}
+.remove-btn{
+  background:#FF6B6B;
+  color:white;
+  margin-top:10px;
+}
+.gift-block{
+  border:2px solid #FFE4E9;
+  padding:20px;
+  border-radius:15px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.gift-warning{
+  color:#FF6B6B;
+  font-size:.85em;
+  display:block;
+}
+.required{color:#FF6B6B}
+.note{font-size:.9em;color:#666}
+
+#roses_{
+  color:#D4A5A5;
+  display: block;
+
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+<h1>💝 Valentine's Day</h1>
+<p class="subtitle">Send love to someone special</p>
+
+<form id="orderForm">
+
+<label>Your Name and Last Name <span class="required">*</span></label>
+<input name="name" required>
+
+<label>Do you want it to be anonymous? <span class="required">*</span></label>
+<select name="anonymous" required>
+  <option value="NO">No</option>
+  <option value="YES">Yes</option>
+</select>
+
+<label>Your Eton Email <span class="required">*</span></label>
+<small class="note">We'll send your confirmation here</small>
+<input type="email" name="email" id="email" required>
+
+<label>Confirm Email <span class="required">*</span></label>
+<small class="note">Please type your email again</small>
+<input type="email" name="emailConfirm" id="emailConfirm" required>
+
+<script>
+const emailInput = document.getElementById("email");
+const emailConfirmInput = document.getElementById("emailConfirm");
+
+// Validate @eton.edu.mx domain
+emailInput.addEventListener("input", () => {
+  const ok = emailInput.value.endsWith("@eton.edu.mx");
+  emailInput.setCustomValidity(ok ? "" : "Email must be @eton.edu.mx");
+});
+
+emailConfirmInput.addEventListener("input", () => {
+  const ok = emailConfirmInput.value.endsWith("@eton.edu.mx");
+  emailConfirmInput.setCustomValidity(ok ? "" : "Email must be @eton.edu.mx");
+});
+
+// Validate emails match
+function validateEmailsMatch() {
+  if (emailInput.value && emailConfirmInput.value) {
+    if (emailInput.value !== emailConfirmInput.value) {
+      emailConfirmInput.setCustomValidity("Emails do not match");
+    } else if (emailConfirmInput.value.endsWith("@eton.edu.mx")) {
+      emailConfirmInput.setCustomValidity("");
+    }
+  }
+}
+
+emailInput.addEventListener("input", validateEmailsMatch);
+emailConfirmInput.addEventListener("input", validateEmailsMatch);
+</script>
+
+<!-- GIFTS -->
+<div id="giftsContainer"></div>
+
+<button type="button" id="addGiftBtn" class="add-btn">
+ + Add another gift
+</button>
+
+<div class="price-display" id="priceDisplay">
+Total: $<span id="totalPrice">0.00</span>
+</div>
+
+<!-- PAYMENT METHOD -->
+<label>Payment Method <span class="required">*</span></label>
+<select id="paymentMethod" name="paymentMethod" required>
+  <option value="">Select payment method...</option>
+  <option value="cash">💵 Cash (Pay at school)</option>
+  <option value="card">💳 Card (Pay at school)</option>
+  <option value="CLIP_transfer">💳 CLIP Transfer</option>
+</select>
+
+<button type="submit" class="submit-btn">
+Place Order ❤️
+</button>
+
+</form>
+</div>
+
+<!-- TEMPLATE -->
+<template id="giftTemplate">
+  <div class="gift-block">
+
+    <label>Recipient Name *</label>
+    <input name="recipientName" required>
+
+    <label>School *</label>
+    <select name="school" required>
+      <option value="">Select School</option>
+      <option value="Eton">Eton School</option>
+      <option value="Irish">Irish</option>
+      <option value="Northridge">Northridge</option>
+      <option value="CVH">CVH</option>
+      <option value="Regina">Regina</option>
+      <option value="Del Bosque">Del Bosque</option>
+      <option value="Anahuac">Anahuac</option>
+      <option value="Humanitree">Humanitree</option>
+      <option value="Tomas Maguey">Tomas Maguey</option>
+      <option value="Americano">Americano</option>
+      <option value="Monteverde">Monteverde</option>
+      <option value="Tomas Moro Lomas">Tomas Moro Lomas</option>
+      <option value="Cumbres Lomas">Cumbres Lomas</option>
+      <option value="Miraflores">Miraflores</option>
+      <option value="Tec_santaFe">Tec Santa Fe</option>
+    </select>
+
+    <label>Grade *</label>
+    <input name="grade" required>
+
+    <label>Choose a Gift *</label>
+    <select name="giftType" class="giftType" required disabled>
+      <option value="">⚠ Select a school first</option>
+    </select>
+
+    <small class="gift-warning">
+      Please choose a school before selecting a gift.
+    </small>
+
+    <button type="button" class="remove-btn removeGiftBtn">
+      Remove gift
+    </button>
+
+  </div>
+</template>
+
+<script>
+
+const giftsContainer = document.getElementById("giftsContainer");
+const template = document.getElementById("giftTemplate");
+
+const priceDisplay = document.getElementById("priceDisplay");
+const totalPriceEl = document.getElementById("totalPrice");
+
+const prices = {
+roses: 37,
+teddy: 90,
+paletas: 16,
+serenata: 32,
+filipitos: 50,
+brownies: 24,
+galletas: 26,
+globos: 37,
+kiss_chocolate: 19,
+};
+
+function updateTotal(){
+  let total = 0;
+  document.querySelectorAll(".giftType").forEach(sel=>{
+    if(sel.value) total += prices[sel.value];
+  });
+
+  totalPriceEl.textContent = total.toFixed(2);
+  priceDisplay.style.display = total > 0 ? "block" : "none";
+}
+
+/* ADD GIFT */
+function addGift(){
+  giftsContainer.appendChild(template.content.cloneNode(true));
+  updateTotal();
+}
+
+document.getElementById("addGiftBtn").onclick = addGift;
+addGift();
+
+/* SCHOOL → ENABLE GIFTS */
+
+
+/* REMOVE GIFT */
+giftsContainer.addEventListener("click", e=>{
+  if(!e.target.classList.contains("removeGiftBtn")) return;
+
+  e.target.closest(".gift-block").remove();
+  updateTotal();
+});
+</script>
+
+<script type="module">
+  // ================= FIREBASE IMPORTS =================
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+  // ================= CONFIG =================
+  const firebaseConfig = {
+// Firebase configuration
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // ================= PROD CHECK =================
+  const snap = await get(ref(db, "PROD"));
+
+  if (snap.exists() && snap.val() === false) {
+    window.location.replace("index.html");
+  }
+
+  // ================= SOLD OUT FLAGS =================
+  // Firebase structure:
+  // soldOut: { roses: true, teddy: false, brownies: true }
+
+  const soldOutSnap = await get(ref(db, "SoldOut"));
+
+  let soldOut = {};
+  if (soldOutSnap.exists()) {
+    soldOut = soldOutSnap.val();
+  }
+
+  console.log("Sold Out Status:", soldOut);
+
+  // Helper to generate option HTML
+  function optionHTML(value, label) {
+    if (soldOut[value] === false) {
+      return `<option value="${value}" disabled>${label} SOLD OUT</option>`;
+    }
+    return `<option value="${value}">${label}</option>`;
+  }
+
+  // ================= GIFT LISTS =================
+  let gifts_eton = `
+    <option value="">Select a gift...</option>
+    ${optionHTML("roses", "🌹 Roses - $37")}
+    ${optionHTML("paletas", "🍭 Paletas - $16")}
+    ${optionHTML("serenata", "🎶 Serenata - $32")}
+    ${optionHTML("filipitos", "🍫 Brigadeiros (4) - $50")}
+    ${optionHTML("brownies", "🍫 Brownies - $24")}
+    ${optionHTML("galletas", "🍪 Galletas - $26")}
+    ${optionHTML("globos", "🎈 Globos - $37")}
+    ${optionHTML("kiss_chocolate", "🍫 Chocolate Kiss (5) - $19")}
+    ${optionHTML("teddy", "🧸 Peluche - $90")}
+  `;
+
+  let gifts_other = `
+    <option value="">Select a gift...</option>
+    ${optionHTML("roses", "🌹 Roses - $37")}
+  `;
+
+  // ================= SCHOOL → ENABLE GIFTS =================
+  giftsContainer.addEventListener("change", (e) => {
+
+    // School selection changed
+    if (e.target.name === "school") {
+      const block = e.target.closest(".gift-block");
+      const giftSelect = block.querySelector(".giftType");
+      const warning = block.querySelector(".gift-warning");
+
+      // No school selected
+      if (!e.target.value) {
+        giftSelect.disabled = true;
+        giftSelect.innerHTML = `<option value="">⚠ Select a school first</option>`;
+        warning.style.display = "block";
+        return;
+      }
+
+      // Enable dropdown
+      giftSelect.disabled = false;
+      warning.style.display = "none";
+
+      // Load correct gift list
+      if (e.target.value === "Eton") {
+        giftSelect.innerHTML = gifts_eton;
+      } else {
+        giftSelect.innerHTML = gifts_other;
+      }
+    }
+
+    // Gift selection changed → update price
+    if (e.target.classList.contains("giftType")) {
+      updateTotal();
+    }
+  });
+</script>
+
+<!-- EMAILJS MUST LOAD FIRST -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+<!-- THEN your Firebase + form script -->
+<script type="module" src="site.js"></script>
+
+</body>
+</html>
