@@ -66,9 +66,9 @@ Originally built for my school's student government, this project demonstrates t
 
 ## Screenshots
 
-![Home Page](images/home.png)
 ![Ordering Page](images/orders.png)
 ![Admin Page](images/admin.png)
+![Order Example](images/order_example.png)
 
 ---
 
